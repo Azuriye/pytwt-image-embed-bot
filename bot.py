@@ -22,8 +22,7 @@ if not all([twitter_token, discord_token, discord_channels, discord_channels != 
     exit(1)
 
 intents = Intents.default()
-intents.messages = True
-intents.guilds = True
+intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
@@ -47,7 +46,7 @@ async def on_message(message):
             return
 
         if str(message.channel.id) in discord_channels:
-            content = message.clean_content
+            content = message.content
 
             if 'twitter.com' in content or 'x.com' in content:
                 url = ""
@@ -65,6 +64,7 @@ async def on_message(message):
                 job.DownloadJob(url).run()  # Run the job
 
                 file_paths = stdout_capture.getvalue().splitlines()  # Get the captured output
+                file_paths = [line.replace('# ', '') for line in file_paths] # Remove the '#' in file-path
                 sys.stdout = sys.__stdout__  # Reset stdout to its original value
 
                 if file_paths:
@@ -72,7 +72,7 @@ async def on_message(message):
                         with open(file_path, 'rb') as file:
                             picture = File(file)
                             await message.channel.send(content=url, file=picture)
-                        shutil.rmtree('f"{script_directory}/gallery-dl')
+                        shutil.rmtree(script_directory+'/gallery-dl')
     except Exception:
         traceback.print_exc()  # Print the full traceback for debugging
 
