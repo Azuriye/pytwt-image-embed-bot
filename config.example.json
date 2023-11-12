@@ -1,0 +1,9 @@
+{
+    "TwitterToken": "Your Twitter Auth Token",
+    "DiscordToken": "Your Discord Bot Token",
+    "DiscordChannels": [
+        "ChannelId1",
+        "ChannelId2",
+        "ChannelId3"
+    ]
+}
