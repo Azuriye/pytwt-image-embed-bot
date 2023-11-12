@@ -8,9 +8,10 @@ from discord.ext import commands
 from discord import Intents, File
 from gallery_dl import config, job
 
-with open(sys.path[0]+'./config.json', 'r') as file:
+script_directory = sys.path[0]
+
+with open(script_directory+'/config.json', 'r') as file:
     config_data = json.load(file)
-    print(config_data)
 
 twitter_token = config_data.get('TwitterToken')
 discord_token = config_data.get('DiscordToken')
@@ -30,6 +31,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 config.clear()
 config.set(("extractor", "twitter"), "unique", "false")
 config.set(("extractor", "twitter"), "replies", "false")
+config.set(("extractor", "twitter"), "base-directory", f"{script_directory}/gallery-dl")
 config.set(("extractor", "twitter", "cookies"), "auth_token", twitter_token)
 
 
@@ -70,7 +72,7 @@ async def on_message(message):
                         with open(file_path, 'rb') as file:
                             picture = File(file)
                             await message.channel.send(content=url, file=picture)
-                        shutil.rmtree('./gallery-dl')
+                        shutil.rmtree('f"{script_directory}/gallery-dl')
     except Exception:
         traceback.print_exc()  # Print the full traceback for debugging
 
