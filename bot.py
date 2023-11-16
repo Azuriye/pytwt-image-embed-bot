@@ -1,16 +1,12 @@
-import json
-import io
-import shutil
-import re
-import sys
-import traceback
+import json, re, sys, aiohttp
+from io import BytesIO
+from gallery_dl import config
 from discord.ext import commands
 from discord import Intents, File
-from gallery_dl import config, job
 
-script_directory = sys.path[0]
+from urljob_hook import UrlJob
 
-with open(script_directory+'/config.json', 'r') as file:
+with open(sys.path[0]+'/config.json', 'r') as file:
     config_data = json.load(file)
 
 twitter_token = config_data.get('TwitterToken')
@@ -30,7 +26,6 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 config.clear()
 config.set(("extractor", "twitter"), "unique", "false")
 config.set(("extractor", "twitter"), "replies", "false")
-config.set(("extractor", "twitter"), "base-directory", f"{script_directory}/gallery-dl")
 config.set(("extractor", "twitter", "cookies"), "auth_token", twitter_token)
 
 
@@ -58,23 +53,22 @@ async def on_message(message):
                 if message.attachments:
                     return
 
-                stdout_capture = io.StringIO()  # Create a StringIO object to capture stdout
-                sys.stdout = stdout_capture  # Redirect stdout to the StringIO object
 
-                job.DownloadJob(url).run()  # Run the job
+                j = UrlJob(url)
+                j.run()
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(j.urls[0]) as resp:
+                        image_bytes = BytesIO(await resp.read())
+                        url_number = re.search(r'/status/(\d+)', url)
+                        filename = f'{url_number.group(1)}.png'
+                        attachment = File(image_bytes, filename=filename)
 
-                file_paths = stdout_capture.getvalue().splitlines()  # Get the captured output
-                file_paths = [line.replace('# ', '') for line in file_paths] # Remove the '#' in file-path
-                sys.stdout = sys.__stdout__  # Reset stdout to its original value
-
-                if file_paths:
-                    for file_path in file_paths:
-                        with open(file_path, 'rb') as file:
-                            picture = File(file)
-                            await message.channel.send(content=url, file=picture)
-                        shutil.rmtree(script_directory+'/gallery-dl')
-    except Exception:
-        traceback.print_exc()  # Print the full traceback for debugging
+                        if attachment:
+                            await message.channel.send(content=url, file=attachment)
+                    
+                
+    except Exception as e:
+        print("Error: ", e)
 
 
 @bot.event
