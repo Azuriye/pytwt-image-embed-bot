@@ -46,27 +46,31 @@ async def on_message(message):
             if 'twitter.com' in content or 'x.com' in content:
                 url = ""
                 try:
-                    url = re.search('(https?://[^\s]*)', content).group(1)
+                    url = re.search(r'(https?://(?:twitter\.com/[^\s]*?/status/(\d{19})|x\.com/[^\s]*?/status/(\d{19})))', content).group(1)
                 except AttributeError:
                     return False
 
                 if message.attachments:
                     return
 
-
+                attachments = []
                 j = UrlJob(url)
                 j.run()
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(j.urls[0]) as resp:
-                        image_bytes = BytesIO(await resp.read())
-                        url_number = re.search(r'/status/(\d+)', url)
-                        filename = f'{url_number.group(1)}.png'
-                        attachment = File(image_bytes, filename=filename)
-
-                        if attachment:
-                            await message.channel.send(content=url, file=attachment)
+                async with aiohttp.ClientSession() as session:            
+                    url_number = re.search(r'/status/(\d{19})', content).group(1)
+                    for image_url in j.urls:
+                        if image_url.endswith('.mp4'):
+                            filename = url_number+'.mp4'
+                        else:
+                            filename = url_number+'.png'
+                        async with session.get(image_url) as resp:
+                            image_bytes = BytesIO(await resp.read())
+                            attachment = File(image_bytes, filename=filename)
+                            attachments.append(attachment)
                     
-                
+                    if attachments:
+                        await message.channel.send(content=url, files=attachments)
+                                                  
     except Exception as e:
         print("Error: ", e)
 
