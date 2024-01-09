@@ -1,4 +1,4 @@
-import json, re, sys, aiohttp
+import json, re, sys, aiohttp, logging
 from io import BytesIO
 from gallery_dl import config
 from discord.ext import commands
@@ -79,4 +79,4 @@ async def on_message(message):
 async def on_error(event, *args, **kwargs):
     print(f'Error in event {event}: {args[0]}')
 
-bot.run(discord_token)
+bot.run(discord_token, log_level=logging.WARN)
