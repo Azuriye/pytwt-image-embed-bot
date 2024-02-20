@@ -69,7 +69,7 @@ async def on_message(message):
                             attachments.append(attachment)
                     
                     if attachments:
-                        await message.channel.send(content=url, files=attachments)
+                        await message.channel.send(content=f'<{url}>', files=attachments)
                                                   
     except Exception as e:
         print("Error: ", e)
