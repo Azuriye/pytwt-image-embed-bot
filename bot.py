@@ -58,15 +58,15 @@ async def on_message(message):
                 j.run()
                 async with aiohttp.ClientSession() as session:            
                     url_number = re.search(r'/status/(\d{19})', content).group(1)
-                    for image_url in j.urls:
-                        if image_url.endswith('.mp4'):
-                            filename = url_number+'.mp4'
-                        else:
-                            filename = url_number+'.png'
-                        async with session.get(image_url) as resp:
-                            image_bytes = BytesIO(await resp.read())
-                            attachment = File(image_bytes, filename=filename)
-                            attachments.append(attachment)
+                    for content_url in j.urls:
+                        async with session.get(content_url) as resp:
+                            if '.mp4' in content_url:
+                                filename = url_number+'.mp4'
+                                attachment = File(BytesIO(await resp.read()), filename=filename)
+                            else:
+                                filename = url_number+'.jpg'
+                                attachment = File(BytesIO(await resp.read()), filename=filename)
+                        attachments.append(attachment)
                     
                     if attachments:
                         await message.channel.send(content=f'<{url}>', files=attachments)
