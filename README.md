@@ -12,7 +12,7 @@ You need the following:
  3. gallery-dl
  4. aiohttp
  
- ## To-Do
+## To-Do
 
  1. Support multiple URLs from a message context.
  2. Support GIF content instead of uploading it as an MP4.
