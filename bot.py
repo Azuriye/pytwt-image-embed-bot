@@ -79,6 +79,7 @@ async def on_message(message):
                         embed = Embed(title=f'{tweet_nick} (@{tweet_author})', description=f'{tweet_content}\n\n💬 {tweet_replies}\t🔁 {tweet_retweets}\t💖 {tweet_likes}', url=f'https://twitter.com/{tweet_author}/status/{tweet_id}', colour=Colour.blue())
                         embed.set_footer(text="Date: "+ '/'.join(tweet_date.split('.')))
                         await message.channel.send(files=attachments, embed=embed)
+                        await message.delete()
                                                   
     except Exception as e:
         print("Error: ", e)
