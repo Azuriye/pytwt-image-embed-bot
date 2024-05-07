@@ -4,7 +4,7 @@ from gallery_dl import config
 from discord.ext import commands
 from discord import Intents, File
 
-from urljob_hook import UrlJob
+from gallery_dl_hook import CombinedJob
 
 with open(sys.path[0]+'/config.json', 'r') as file:
     config_data = json.load(file)
@@ -54,7 +54,7 @@ async def on_message(message):
                     return
 
                 attachments = []
-                j = UrlJob(url)
+                j = CombinedJob(url)
                 j.run()
                 async with aiohttp.ClientSession() as session:            
                     url_number = re.search(r'/status/(\d{19})', content).group(1)
