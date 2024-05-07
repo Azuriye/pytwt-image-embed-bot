@@ -2,9 +2,9 @@ import json, re, sys, aiohttp, logging
 from io import BytesIO
 from gallery_dl import config
 from discord.ext import commands
-from discord import Intents, File
+from discord import Intents, File, Embed, Colour
 
-from gallery_dl_hook import CombinedJob
+from external_hook import CombinedJob, human_format
 
 with open(sys.path[0]+'/config.json', 'r') as file:
     config_data = json.load(file)
@@ -56,20 +56,29 @@ async def on_message(message):
                 attachments = []
                 j = CombinedJob(url)
                 j.run()
-                async with aiohttp.ClientSession() as session:            
-                    url_number = re.search(r'/status/(\d{19})', content).group(1)
-                    for content_url in j.urls:
+                async with aiohttp.ClientSession() as session:
+                    for content_url, kwdict in zip(j.urls, j.kwdicts):
                         async with session.get(content_url) as resp:
-                            if '.mp4' in content_url:
-                                filename = url_number+'.mp4'
-                                attachment = File(BytesIO(await resp.read()), filename=filename)
-                            else:
-                                filename = url_number+'.jpg'
-                                attachment = File(BytesIO(await resp.read()), filename=filename)
+                            tweet_date = kwdict['date'].strftime('%d.%m.%Y')
+                            tweet_id = str(kwdict['tweet_id'])
+                            extension = "."+kwdict['extension']
+                            image_num = "_"+str(+kwdict['num'])
+                            filename = tweet_date+"."+tweet_id+image_num+extension
+                            attachment = File(BytesIO(await resp.read()), filename=filename)
                         attachments.append(attachment)
                     
                     if attachments:
-                        await message.channel.send(content=f'<{url}>', files=attachments)
+                        tweet_author = kwdict['author']['name']
+                        tweet_nick = kwdict['author']['nick']
+                        tweet_content = kwdict['content']
+
+                        tweet_replies = human_format(kwdict['reply_count'])
+                        tweet_retweets = human_format(kwdict['retweet_count'])
+                        tweet_likes = human_format(kwdict['favorite_count'])
+
+                        embed = Embed(title=f'{tweet_nick} (@{tweet_author})', description=f'{tweet_content}\n\n💬 {tweet_replies}\t🔁 {tweet_retweets}\t💖 {tweet_likes}', url=f'https://twitter.com/{tweet_author}/status/{tweet_id}', colour=Colour.blue())
+                        embed.set_footer(text="Date: "+ '/'.join(tweet_date.split('.')))
+                        await message.channel.send(files=attachments, embed=embed)
                                                   
     except Exception as e:
         print("Error: ", e)
