@@ -4,7 +4,7 @@ from gallery_dl import config
 from discord.ext import commands
 from discord import Intents, File, Embed, Colour
 
-from external_hook import CombinedJob, human_format
+from external_hook import CombinedJob, human_format, convert_video_to_gif
 
 with open(sys.path[0]+'/config.json', 'r') as file:
     config_data = json.load(file)
@@ -66,7 +66,15 @@ async def on_message(message):
                                 extension = "."+kwdict['extension']
                                 image_num = "_"+str(+kwdict['num'])
                                 filename = tweet_date+"."+tweet_id+image_num+extension
-                                attachment = File(BytesIO(await resp.read()), filename=filename)
+
+                                bitrate = kwdict.get('bitrate')
+                                if 'bitrate' not in kwdict or (bitrate and bitrate > 0):
+                                    attachment = File(BytesIO(await resp.read()), filename=filename)
+                                else:
+                                    video_bytes = await resp.read()
+                                    gif_bytes = convert_video_to_gif(video_bytes, filename)
+                                    attachment = File(gif_bytes, filename=filename[:-4] + ".gif")
+                                
                             attachments.append(attachment)
                     
                         if attachments:
