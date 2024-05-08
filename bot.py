@@ -68,7 +68,7 @@ async def on_message(message):
                                 filename = tweet_date+"."+tweet_id+image_num+extension
 
                                 bitrate = kwdict.get('bitrate')
-                                if 'bitrate' not in kwdict or (bitrate and bitrate > 0):
+                                if 'bitrate' not in kwdict or (bitrate and bitrate != 0):
                                     attachment = File(BytesIO(await resp.read()), filename=filename)
                                 else:
                                     video_bytes = await resp.read()
