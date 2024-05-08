@@ -44,7 +44,7 @@ async def on_message(message):
             content = message.content
 
             if 'twitter.com' in content or 'x.com' in content:
-                urls = re.findall(r'(https?://(?:twitter\.com/[^\s]*?/status/(\d{19})|x\.com/[^\s]*?/status/(\d{19})))', content)
+                urls = re.findall(r'(https?://(?:\w+\.)?(twitter\.com|[^\s]*?/status/\d{19}|x\.com/[^\s]*?/status/\d{19}))', content)
 
                 if not urls:
                     return
@@ -53,6 +53,7 @@ async def on_message(message):
                     return
 
                 for url, *_ in urls:
+                    url = re.sub(r'https?://(?:\w*\.?)?(twitter\.com|\w*?x\.com)', r'https://twitter.com', url)
                     attachments = []
                     j = CombinedJob(url)
                     j.run()
