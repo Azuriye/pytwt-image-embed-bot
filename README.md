@@ -14,7 +14,7 @@ You need the following:
  
 ## To-Do
 
- 1. Support GIF content instead of uploading it as an MP4.
+ 1. Support GIF content instead of uploading it as an MP4. (Implemented but needs rework?)
 
 copy `config.example.json` and rename to `config.json`, then open and fill out token and channel id
 
