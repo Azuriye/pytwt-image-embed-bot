@@ -1,4 +1,4 @@
-import json, re, sys, aiohttp, logging, datetime
+import json, re, sys, aiohttp, logging
 from io import BytesIO
 from gallery_dl import config
 from discord.ext import commands
