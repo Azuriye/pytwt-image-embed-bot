@@ -12,7 +12,8 @@ You need the following:
  3. gallery-dl
  4. aiohttp
  5. tzlocal
- 6. ffmpeg
+ 6. pytz
+ 7. ffmpeg
  
 ## To-Do
 
