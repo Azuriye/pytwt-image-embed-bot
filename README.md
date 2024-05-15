@@ -11,7 +11,8 @@ You need the following:
  2. discord.py 
  3. gallery-dl
  4. aiohttp
- 5. ffmpeg
+ 5. tzlocal
+ 6. ffmpeg
  
 ## To-Do
 
