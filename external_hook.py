@@ -1,3 +1,5 @@
+from tzlocal import get_localzone
+from pytz import utc
 from gallery_dl import job
 from io import BytesIO
 import subprocess as sp
@@ -25,7 +27,7 @@ def human_format(num: int) -> str:
 # https://stackoverflow.com/a/67878795
 # https://superuser.com/a/556031
 # https://wunkolo.github.io/post/2020/02/buttery-smooth-10fps/
-def convert_video_to_gif(video_bytes: bytes, filename: str) -> BytesIO:
+def convert_video_to_gif(video_bytes: bytes) -> BytesIO:
     gif_bytes = BytesIO()
 
     ffmpeg = 'ffmpeg'
@@ -45,3 +47,8 @@ def convert_video_to_gif(video_bytes: bytes, filename: str) -> BytesIO:
     gif_bytes.seek(0)
 
     return gif_bytes
+
+def local_tz(datetime):
+    dt_utc = datetime.replace(tzinfo=utc)
+    local_timezone = get_localzone()
+    return dt_utc.astimezone(local_timezone)

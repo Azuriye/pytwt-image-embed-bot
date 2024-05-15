@@ -1,10 +1,10 @@
-import json, re, sys, aiohttp, logging
+import json, re, sys, aiohttp, logging, datetime
 from io import BytesIO
 from gallery_dl import config
 from discord.ext import commands
 from discord import Intents, File, Embed, Colour
 
-from external_hook import CombinedJob, human_format, convert_video_to_gif
+from external_hook import CombinedJob, human_format, convert_video_to_gif, local_tz
 
 with open(sys.path[0]+'/config.json', 'r') as file:
     config_data = json.load(file)
@@ -61,18 +61,18 @@ async def on_message(message):
                     async with aiohttp.ClientSession() as session:
                         for content_url, kwdict in zip(j.urls, j.kwdicts):
                             async with session.get(content_url) as resp:
-                                tweet_date = kwdict['date'].strftime('%d.%m.%Y')
+                                local_time = local_tz(kwdict['date'])
                                 tweet_id = str(kwdict['tweet_id'])
                                 extension = "."+kwdict['extension']
                                 image_num = "_"+str(+kwdict['num'])
-                                filename = tweet_date+"."+tweet_id+image_num+extension
+                                filename = local_time.strftime('%d.%m.%Y')+"."+tweet_id+image_num+extension
 
                                 bitrate = kwdict.get('bitrate')
                                 if 'bitrate' not in kwdict or (bitrate and bitrate != 0):
                                     attachment = File(BytesIO(await resp.read()), filename=filename)
                                 else:
                                     video_bytes = await resp.read()
-                                    gif_bytes = convert_video_to_gif(video_bytes, filename)
+                                    gif_bytes = convert_video_to_gif(video_bytes)
                                     attachment = File(gif_bytes, filename=filename[:-4] + ".gif")
                                 
                             attachments.append(attachment)
@@ -87,9 +87,9 @@ async def on_message(message):
                             tweet_retweets = human_format(kwdict['retweet_count'])
                             tweet_likes = human_format(kwdict['favorite_count'])
 
-                            embed = Embed(title=f'{tweet_nick} (@{tweet_author})',  description=f'{tweet_content}', url=tweet_link, colour=Colour.blue())
+                            embed = Embed(title=f'{tweet_nick} (@{tweet_author})',  description=f'{tweet_content}', url=tweet_link, timestamp=local_time, colour=Colour.blue())
                             embed.set_author(name=f'💬 {tweet_replies}   🔁 {tweet_retweets}   💖 {tweet_likes}', url=tweet_link)
-                            embed.set_footer(text="Date: "+ '/'.join(tweet_date.split('.')))
+                            embed.set_footer(text='Twitter')
                             await message.channel.send(files=attachments, embed=embed)
                 await message.delete()
                                                   
