@@ -1,5 +1,4 @@
-from tzlocal import get_localzone
-from pytz import utc
+from datetime import timezone
 from gallery_dl import job
 from io import BytesIO
 import subprocess as sp
@@ -48,7 +47,6 @@ def convert_video_to_gif(video_bytes: bytes) -> BytesIO:
 
     return gif_bytes
 
-def local_tz(datetime):
-    dt_utc = datetime.replace(tzinfo=utc)
-    local_timezone = get_localzone()
-    return dt_utc.astimezone(local_timezone)
+# https://stackoverflow.com/a/13287083
+def utc_to_local(utc_dt):
+    return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)

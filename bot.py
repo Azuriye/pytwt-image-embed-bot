@@ -4,7 +4,7 @@ from gallery_dl import config
 from discord.ext import commands
 from discord import Intents, File, Embed, Colour
 
-from external_hook import CombinedJob, human_format, convert_video_to_gif, local_tz
+from external_hook import CombinedJob, human_format, convert_video_to_gif, utc_to_local
 
 with open(sys.path[0]+'/config.json', 'r') as file:
     config_data = json.load(file)
@@ -61,11 +61,11 @@ async def on_message(message):
                     async with aiohttp.ClientSession() as session:
                         for content_url, kwdict in zip(j.urls, j.kwdicts):
                             async with session.get(content_url) as resp:
-                                local_time = local_tz(kwdict['date'])
+                                local_time = utc_to_local(kwdict['date'])
                                 tweet_id = str(kwdict['tweet_id'])
                                 extension = "."+kwdict['extension']
                                 image_num = "_"+str(+kwdict['num'])
-                                filename = local_time.strftime('%d.%m.%Y')+"."+tweet_id+image_num+extension
+                                filename = kwdict['date'].strftime('%d.%m.%Y')+"."+tweet_id+image_num+extension
 
                                 bitrate = kwdict.get('bitrate')
                                 if 'bitrate' not in kwdict or (bitrate and bitrate != 0):
