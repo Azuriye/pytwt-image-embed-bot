@@ -61,11 +61,11 @@ async def on_message(message):
                     async with aiohttp.ClientSession() as session:
                         for content_url, kwdict in zip(j.urls, j.kwdicts):
                             async with session.get(content_url) as resp:
-                                local_time = utc_to_local(kwdict['date'])
+                                tweet_date = kwdict['date']
                                 tweet_id = str(kwdict['tweet_id'])
                                 extension = "."+kwdict['extension']
                                 image_num = "_"+str(+kwdict['num'])
-                                filename = kwdict['date'].strftime('%d.%m.%Y')+"."+tweet_id+image_num+extension
+                                filename = tweet_date.strftime('%d.%m.%Y')+"."+tweet_id+image_num+extension
 
                                 bitrate = kwdict.get('bitrate')
                                 if 'bitrate' not in kwdict or (bitrate and bitrate != 0):
@@ -87,7 +87,7 @@ async def on_message(message):
                             tweet_retweets = human_format(kwdict['retweet_count'])
                             tweet_likes = human_format(kwdict['favorite_count'])
 
-                            embed = Embed(title=f'{tweet_nick} (@{tweet_author})',  description=f'{tweet_content}', url=tweet_link, timestamp=local_time, colour=Colour.blue())
+                            embed = Embed(title=f'{tweet_nick} (@{tweet_author})',  description=f'{tweet_content}', url=tweet_link, timestamp=utc_to_local(tweet_date), colour=Colour.blue())
                             embed.set_author(name=f'💬 {tweet_replies}   🔁 {tweet_retweets}   💖 {tweet_likes}', url=tweet_link)
                             embed.set_footer(text='Twitter')
                             await message.channel.send(files=attachments, embed=embed)
