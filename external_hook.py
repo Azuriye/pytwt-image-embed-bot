@@ -32,7 +32,7 @@ def convert_video_to_gif(video_bytes: bytes) -> BytesIO:
     ffmpeg = 'ffmpeg'
     cmd = [ffmpeg,
            '-i', 'pipe:',
-           '-vf', 'fps=10,scale=320:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse',
+           '-vf', 'fps=50,scale=320:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse',
            '-loop', '0',
            '-f', 'gif',
            '-loglevel', 'error',
