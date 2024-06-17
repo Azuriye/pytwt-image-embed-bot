@@ -58,39 +58,40 @@ async def on_message(message):
                     j = CombinedJob(url)
                     j.run()
 
-                    async with aiohttp.ClientSession() as session:
-                        for content_url, kwdict in zip(j.urls, j.kwdicts):
-                            async with session.get(content_url) as resp:
-                                tweet_date = kwdict['date']
-                                tweet_id = str(kwdict['tweet_id'])
-                                extension = "."+kwdict['extension']
-                                image_num = "_"+str(+kwdict['num'])
-                                filename = tweet_date.strftime('%d.%m.%Y')+"."+tweet_id+image_num+extension
+                    async with message.channel.typing():
+                        async with aiohttp.ClientSession() as session:
+                            for content_url, kwdict in zip(j.urls, j.kwdicts):
+                                async with session.get(content_url) as resp:
+                                    tweet_date = kwdict['date']
+                                    tweet_id = str(kwdict['tweet_id'])
+                                    extension = "."+kwdict['extension']
+                                    image_num = "_"+str(+kwdict['num'])
+                                    filename = tweet_date.strftime('%d.%m.%Y')+"."+tweet_id+image_num+extension
 
-                                bitrate = kwdict.get('bitrate')
-                                if 'bitrate' not in kwdict or (bitrate and bitrate != 0):
-                                    attachment = File(BytesIO(await resp.read()), filename=filename)
-                                else:
-                                    video_bytes = await resp.read()
-                                    gif_bytes = convert_video_to_gif(video_bytes)
-                                    attachment = File(gif_bytes, filename=filename[:-4] + ".gif")
+                                    bitrate = kwdict.get('bitrate')
+                                    if 'bitrate' not in kwdict or (bitrate and bitrate != 0):
+                                        attachment = File(BytesIO(await resp.read()), filename=filename)
+                                    else:
+                                        video_bytes = await resp.read()
+                                        gif_bytes = convert_video_to_gif(video_bytes)
+                                        attachment = File(gif_bytes, filename=filename[:-4] + ".gif")
                                 
-                            attachments.append(attachment)
+                                attachments.append(attachment)
                     
-                        if attachments:
-                            tweet_author = kwdict['author']['name']
-                            tweet_nick = kwdict['author']['nick']
-                            tweet_content = kwdict['content']
-                            tweet_link = f'https://twitter.com/{tweet_author}/status/{tweet_id}'
+                            if attachments:
+                                tweet_author = kwdict['author']['name']
+                                tweet_nick = kwdict['author']['nick']
+                                tweet_content = kwdict['content']
+                                tweet_link = f'https://twitter.com/{tweet_author}/status/{tweet_id}'
 
-                            tweet_replies = human_format(kwdict['reply_count'])
-                            tweet_retweets = human_format(kwdict['retweet_count'])
-                            tweet_likes = human_format(kwdict['favorite_count'])
+                                tweet_replies = human_format(kwdict['reply_count'])
+                                tweet_retweets = human_format(kwdict['retweet_count'])
+                                tweet_likes = human_format(kwdict['favorite_count'])
 
-                            embed = Embed(title=f'{tweet_nick} (@{tweet_author})',  description=f'{tweet_content}', url=tweet_link, timestamp=utc_to_local(tweet_date), colour=Colour.blue())
-                            embed.set_author(name=f'💬 {tweet_replies}   🔁 {tweet_retweets}   💖 {tweet_likes}', url=tweet_link)
-                            embed.set_footer(text='Twitter')
-                            await message.channel.send(files=attachments, embed=embed)
+                                embed = Embed(title=f'{tweet_nick} (@{tweet_author})',  description=f'{tweet_content}', url=tweet_link, timestamp=utc_to_local(tweet_date), colour=Colour.blue())
+                                embed.set_author(name=f'💬 {tweet_replies}   🔁 {tweet_retweets}   💖 {tweet_likes}', url=tweet_link)
+                                embed.set_footer(text='Twitter')
+                                await message.channel.send(files=attachments, embed=embed)
                 await message.delete()
                                                   
     except Exception as e:
