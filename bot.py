@@ -96,8 +96,7 @@ async def on_message(message):
                                     tweet_id = str(kwdict['tweet_id'])
                                     extension = "."+kwdict['extension']
                                     image_num = "_"+str(+kwdict['num'])
-                                    filename = tweet_date.strftime(
-                                        '%d.%m.%Y')+"."+tweet_id+image_num+extension
+                                    filename = tweet_date.strftime('%d.%m.%Y')+"."+tweet_id+image_num+extension
 
                                     bitrate = kwdict.get('bitrate')
                                     # Process as static image if no bitrate key exists or if bitrate is non-zero.
@@ -112,27 +111,21 @@ async def on_message(message):
                                         # Convert and check size
                                         gif_bytes = await async_convert_video_to_gif(video_bytes, str(f'{width}:-1'))
                                         gif_data = gif_bytes.read()
-                                        gif_size_mb = len(
-                                            gif_data) / (1024 * 1024)
+                                        gif_size_mb = len(gif_data) / (1024 * 1024)
                                         gif_bytes.seek(0)
 
                                         while gif_size_mb > max_gif_size_mb:
                                             width = int(width * 0.75)
-                                            logging.info(
-                                                f"GIF too large ({gif_size_mb:.2f} MB), retrying with width={width}")
+                                            logging.info(f"GIF too large ({gif_size_mb:.2f} MB), retrying with width={width}")
 
                                             gif_bytes = await async_convert_video_to_gif(video_bytes, str(f'{width}:-1'))
                                             gif_data = gif_bytes.read()
-                                            gif_size_mb = len(
-                                                gif_data) / (1024 * 1024)
+                                            gif_size_mb = len(gif_data) / (1024 * 1024)
                                             gif_bytes.seek(0)
 
-                                        attachment_mp4 = File(
-                                            BytesIO(video_bytes), filename=filename)
-                                        attachment_gif = File(
-                                            gif_bytes, filename=filename[:-4] + ".gif")
-                                        attachments.extend(
-                                            [attachment_mp4, attachment_gif])
+                                        attachment_mp4 = File(BytesIO(video_bytes), filename=filename)
+                                        attachment_gif = File(gif_bytes, filename=filename[:-4] + ".gif")
+                                        attachments.extend([attachment_mp4, attachment_gif])
 
                             if attachments:
                                 # Use the first kwdict for tweet metadata (assuming all media share the same tweet).
@@ -141,12 +134,9 @@ async def on_message(message):
                                 tweet_content = kwdict['content']
                                 tweet_link = f'https://x.com/{tweet_author}/status/{tweet_id}'
 
-                                tweet_replies = human_format(
-                                    kwdict['reply_count'])
-                                tweet_retweets = human_format(
-                                    kwdict['retweet_count'])
-                                tweet_likes = human_format(
-                                    kwdict['favorite_count'])
+                                tweet_replies = human_format(kwdict['reply_count'])
+                                tweet_retweets = human_format(kwdict['retweet_count'])
+                                tweet_likes = human_format(kwdict['favorite_count'])
 
                                 embed = Embed(title=f'{tweet_nick} (@{tweet_author})',  description=f'{tweet_content}',url=tweet_link, timestamp=utc_to_local(tweet_date), colour=Colour.blue())
                                 embed.set_author(name=f'💬 {tweet_replies}   🔁 {tweet_retweets}   💖 {tweet_likes}', url=tweet_link)
