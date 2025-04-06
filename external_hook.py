@@ -24,11 +24,15 @@ def human_format(num: int) -> str:
         num /= 1000.0
     return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
 
+# https://stackoverflow.com/a/13287083
+def utc_to_local(utc_dt):
+    return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+
 # https://stackoverflow.com/a/67878795
 # https://superuser.com/a/556031
 # https://wunkolo.github.io/post/2020/02/buttery-smooth-10fps
 # http://blog.pkh.me/p/21-high-quality-gif-with-ffmpeg.html
-def convert_video_to_gif(video_bytes: bytes, fps: int = 50, dither: str = 'sierra2_4a') -> BytesIO:
+def convert_video_to_gif(video_bytes: bytes, scale: str, fps: int = 50, dither: str = 'sierra2_4a') -> BytesIO:
     """
     Convert video bytes to a high-quality GIF using a two-pass FFmpeg process.
 
@@ -47,8 +51,8 @@ def convert_video_to_gif(video_bytes: bytes, fps: int = 50, dither: str = 'sierr
     with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
         palette_path = tmp.name
 
-    # Define filter chain.
-    filters = f"fps={fps}"
+    # Define filter chain using Lanczos scaling for best quality.
+    filters = f"fps={fps},scale={scale}:flags=lanczos"
 
     # First pass: Generate a global palette that focuses on moving pixels (stats_mode=diff)
     # Remove the 'split' filter, as it is not needed for a single output.
@@ -85,7 +89,3 @@ def convert_video_to_gif(video_bytes: bytes, fps: int = 50, dither: str = 'sierr
         raise RuntimeError("GIF conversion failed: " + result_gif.stderr.decode())
 
     return BytesIO(result_gif.stdout)
-
-# https://stackoverflow.com/a/13287083
-def utc_to_local(utc_dt):
-    return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
