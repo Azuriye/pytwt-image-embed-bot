@@ -32,6 +32,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 config.clear()
 config.set(("extractor", "twitter"), "unique", "false")
 config.set(("extractor", "twitter"), "replies", "false")
+config.set(("extractor", "twitter"), "retweets", "false")
 config.set(("extractor", "twitter", "cookies"), "auth_token", twitter_token)
 
 # Twitter URL regex (matches both twitter.com and x.com)
