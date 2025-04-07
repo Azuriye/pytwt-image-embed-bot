@@ -123,9 +123,9 @@ async def on_message(message):
                                             gif_size_mb = len(gif_data) / (1024 * 1024)
                                             gif_bytes.seek(0)
 
-                                        attachment_mp4 = File(BytesIO(video_bytes), filename=filename)
-                                        attachment_gif = File(gif_bytes, filename=filename[:-4] + ".gif")
-                                        attachments.extend([attachment_mp4, attachment_gif])
+                                        mp4_attachment = File(BytesIO(video_bytes), filename=filename)
+                                        gif_attachment = File(gif_bytes, filename=filename[:-4] + ".gif")
+                                        attachments.extend([mp4_attachment, gif_attachment])
 
                             if attachments:
                                 # Use the first kwdict for tweet metadata (assuming all media share the same tweet).
@@ -138,9 +138,9 @@ async def on_message(message):
                                 tweet_retweets = human_format(kwdict['retweet_count'])
                                 tweet_likes = human_format(kwdict['favorite_count'])
 
-                                embed = Embed(title=f'{tweet_nick} (@{tweet_author})',  description=f'{tweet_content}',url=tweet_link, timestamp=utc_to_local(tweet_date), colour=Colour.blue())
+                                embed = Embed(title=f'{tweet_nick} (@{tweet_author})', description=f'{tweet_content}', url=tweet_link, timestamp=utc_to_local(tweet_date), colour=Colour.blue())
                                 embed.set_author(name=f'💬 {tweet_replies}   🔁 {tweet_retweets}   💖 {tweet_likes}', url=tweet_link)
-                                embed.set_footer(text='EmbedBot')
+                                embed.set_footer(text='EmbedBot', icon_url="https://files.catbox.moe/3u1fe7.jpg")
                                 await message.channel.send(files=attachments, embed=embed)
                 await message.delete()
 
