@@ -99,9 +99,8 @@ async def on_message(message):
                                     image_num = "_"+str(+kwdict['num'])
                                     filename = tweet_date.strftime('%d.%m.%Y')+"."+tweet_id+image_num+extension
 
-                                    bitrate = kwdict.get('bitrate')
-                                    # Process as static image if no bitrate key exists or if bitrate is non-zero.
-                                    if 'bitrate' not in kwdict or (bitrate and bitrate != 0):
+                                    # Process as image or video if bitrate is non-zero.
+                                    if kwdict.get('bitrate') != 0:
                                         attachment = File(BytesIO(await resp.read()), filename=filename)
                                         attachments.append(attachment)
                                     else:
