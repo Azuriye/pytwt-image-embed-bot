@@ -19,7 +19,7 @@ You need the following:
  5. ffmpeg
  6. XClientTransaction (https://github.com/iSarabjitDhiman/XClientTransaction)
 
-copy `config.example.json` and rename to `config.json`, then open and fill out token and channel id
+copy `config.template.json` and rename to `config.json`, edit to fill in your tokens & channels.
 
 ### Run
 

@@ -1,6 +1,7 @@
-import json
 import re
+import os
 import sys
+import json
 import aiohttp
 import logging
 from io import BytesIO
@@ -8,10 +9,12 @@ from gallery_dl import config
 from traceback import print_exc
 from discord.ext import commands
 from discord import Intents, File, Embed, Colour
-from external_hook import extract_with_retry, async_convert_video_to_gif, human_format, utc_to_local
+from gallery_hook import extract_with_retry
+from gif_converter import async_convert_video_to_gif
+from utils import human_format, utc_to_local
 
 # Load configuration
-with open(sys.path[0]+'/config.json', 'r') as file:
+with open(os.path.join(os.path.dirname(sys.path[0]), 'config.json'), 'r') as file:
     config_data = json.load(file)
 
 twitter_token = config_data.get('TwitterToken')
