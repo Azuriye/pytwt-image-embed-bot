@@ -1,4 +1,4 @@
 config.json
-start
-stop
+start.sh
+stop.sh
 __pycache__/
