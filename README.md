@@ -12,7 +12,6 @@ Fix: https://github.com/mikf/gallery-dl/issues/7382#issuecomment-2832560527
 
 You need the following: 
 
- 1. Python 3.9.2 
  2. discord.py 
  3. gallery-dl
  4. aiohttp
