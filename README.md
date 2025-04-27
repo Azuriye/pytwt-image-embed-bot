@@ -12,11 +12,11 @@ Fix: https://github.com/mikf/gallery-dl/issues/7382#issuecomment-2832560527
 
 You need the following: 
 
- 2. discord.py 
- 3. gallery-dl
- 4. aiohttp
- 5. ffmpeg
- 6. XClientTransaction (https://github.com/iSarabjitDhiman/XClientTransaction)
+ 1. discord.py 
+ 2. gallery-dl
+ 3. aiohttp
+ 4. ffmpeg
+ 5. XClientTransaction (https://github.com/iSarabjitDhiman/XClientTransaction)
 
 copy `config.template.json` and rename to `config.json`, edit to fill in your tokens & channels.
 
