@@ -1,5 +1,10 @@
 # pytwt-image-embed-bot
-Watches channel for Twitter links and embeds images with links to Tweet URL
+Watches a channel for X (formerly Twitter) links and embeds images.
+
+## Issues
+https://github.com/mikf/gallery-dl/issues/7382
+
+Fix: https://github.com/mikf/gallery-dl/issues/7382#issuecomment-2832560527
 
 ## How To
 
@@ -12,10 +17,7 @@ You need the following:
  3. gallery-dl
  4. aiohttp
  5. ffmpeg
- 
-## To-Do
-
- 1. Support GIF content instead of uploading it as an MP4. (Implemented but needs rework?)
+ 6. XClientTransaction (https://github.com/iSarabjitDhiman/XClientTransaction)
 
 copy `config.example.json` and rename to `config.json`, then open and fill out token and channel id
 
