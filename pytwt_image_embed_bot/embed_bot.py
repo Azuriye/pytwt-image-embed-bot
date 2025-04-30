@@ -9,7 +9,7 @@ from gallery_dl import config
 from traceback import print_exc
 from discord.ext import commands
 from discord import Intents, File, Embed, Colour
-from gallery_hook import extract_with_retry
+from gallery_hook import CombinedJob
 from gif_converter import async_convert_video_to_gif
 from utils import human_format, utc_to_local
 
@@ -81,10 +81,10 @@ async def on_message(message):
 
             for author, tweet_id in urls:
                     attachments = []
-                    url = f'https://x.com/{author}/status/{tweet_id}'
+                    tweet_url = f'https://x.com/{author}/status/{tweet_id}'
 
-                    j = await extract_with_retry(url)
-                    if j is None: continue
+                    j = CombinedJob(tweet_url)
+                    j.run()
 
                     async with message.channel.typing():
                         async with aiohttp.ClientSession() as session:
@@ -132,8 +132,8 @@ async def on_message(message):
                                 tweet_retweets = human_format(kwdict['retweet_count'])
                                 tweet_likes = human_format(kwdict['favorite_count'])
 
-                                embed = Embed(title=f'{tweet_nick} (@{author})', description=f'{tweet_content}', url=url, timestamp=utc_to_local(tweet_date), colour=Colour.blue())
-                                embed.set_author(name=f'💬 {tweet_replies}   🔁 {tweet_retweets}   💖 {tweet_likes}', url=url)
+                                embed = Embed(title=f'{tweet_nick} (@{author})', description=f'{tweet_content}', url=tweet_url, timestamp=utc_to_local(tweet_date), colour=Colour.blue())
+                                embed.set_author(name=f'💬 {tweet_replies}   🔁 {tweet_retweets}   💖 {tweet_likes}', url=tweet_url)
                                 embed.set_footer(text='EmbedBot', icon_url="https://files.catbox.moe/3u1fe7.jpg")
                                 await message.channel.send(files=attachments, embed=embed)
             await message.delete()
