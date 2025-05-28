@@ -2,7 +2,6 @@ import os
 import asyncio
 import tempfile
 from io import BytesIO
-import subprocess as sp
 
 async def scale_mp4(video_bytes: bytes, scale: str) -> BytesIO:
     """

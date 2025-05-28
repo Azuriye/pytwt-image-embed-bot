@@ -1,6 +1,4 @@
 import logging
-logging.basicConfig(level=logging.WARN)
-
 import re
 import os
 import sys
@@ -163,4 +161,4 @@ async def on_error(event, *args, **kwargs):
     logging.error("Error in event %s", event)
     print_exc()
 
-bot.run(discord_token)
+bot.run(discord_token, log_level=logging.WARN, root_logger=True)
