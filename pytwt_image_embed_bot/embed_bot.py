@@ -1,16 +1,18 @@
+import logging
+logging.basicConfig(level=logging.INFO)
+
 import re
 import os
 import sys
 import json
 import aiohttp
-import logging
 from io import BytesIO
 from gallery_dl import config
 from traceback import print_exc
 from discord.ext import commands
 from discord import Intents, File, Embed, Colour
 from gallery_hook import CombinedJob
-from gif_converter import async_convert_video_to_gif
+from media_converter import scale_mp4, convert_video_to_gif
 from utils import human_format, utc_to_local
 
 # Load configuration
@@ -74,10 +76,10 @@ async def on_message(message):
             boost_level = await get_server_boost_level(guild)
 
             # Mapping of boost level to max gif size
-            boost_to_size = {3: 250, 2: 100, 1: 50, 0: 8}
+            boost_to_size = {3: 250, 2: 100, 1: 50, 0: 10}
 
-            # Get the max gif size based on the boost level
-            max_gif_size_mb = boost_to_size.get(boost_level, 8)
+            # Get the max size based on the boost level
+            max_size_mb = boost_to_size.get(boost_level, 10)
 
             for author, tweet_id in urls:
                     attachments = []
@@ -95,33 +97,47 @@ async def on_message(message):
                                     image_num = "_"+str(+kwdict['num'])
                                     filename = tweet_date.strftime('%d.%m.%Y')+"."+tweet_id+image_num+extension
 
-                                    # Process as image or video if bitrate is non-zero.
-                                    if kwdict.get('bitrate') != 0:
-                                        attachment = File(BytesIO(await resp.read()), filename=filename)
-                                        attachments.append(attachment)
-                                    else:
-                                        # Process as video: convert video to GIF and attach both MP4 and GIF versions.
+                                    # Process as an image if bitrate keyword does not exist.
+                                    if 'bitrate' not in kwdict:
+                                        image_attachment = File(BytesIO(await resp.read()), filename=filename)
+                                        attachments.append(image_attachment)
+
+                                    # Process both GIF images and videos.
+                                    elif kwdict.get('bitrate') >= 0:
                                         video_bytes = await resp.read()
                                         width = int(kwdict['width'])
+                                        video_size_mb = len(video_bytes) / (1024 * 1024)
 
-                                        # Convert and check size
-                                        gif_bytes = await async_convert_video_to_gif(video_bytes, str(f'{width}:-1'))
-                                        gif_data = gif_bytes.read()
-                                        gif_size_mb = len(gif_data) / (1024 * 1024)
-                                        gif_bytes.seek(0)
-
-                                        while gif_size_mb > max_gif_size_mb:
-                                            width = int(width * 0.75)
-                                            logging.info(f"GIF too large ({gif_size_mb:.2f} MB), retrying with width={width}")
-
-                                            gif_bytes = await async_convert_video_to_gif(video_bytes, str(f'{width}:-1'))
+                                        # GIF image logic.
+                                        if kwdict.get('bitrate') == 0:
+                                            gif_bytes = await convert_video_to_gif(video_bytes, str(f'{width}:-1'))
                                             gif_data = gif_bytes.read()
                                             gif_size_mb = len(gif_data) / (1024 * 1024)
                                             gif_bytes.seek(0)
 
-                                        mp4_attachment = File(BytesIO(video_bytes), filename=filename)
-                                        gif_attachment = File(gif_bytes, filename=filename[:-4] + ".gif")
-                                        attachments.extend([mp4_attachment, gif_attachment])
+                                            while gif_size_mb > max_size_mb:
+                                                width = int(width * 0.75)
+                                                logging.info(f"GIF too large ({gif_size_mb:.2f} MB), retrying with width={width}")
+
+                                                gif_bytes = await convert_video_to_gif(video_bytes, str(f'{width}:-1'))
+                                                gif_data = gif_bytes.read()
+                                                gif_size_mb = len(gif_data) / (1024 * 1024)
+                                                gif_bytes.seek(0)
+
+                                            gif_attachment = File(gif_bytes, filename=filename[:-4] + ".gif")
+                                        
+                                        while video_size_mb > max_size_mb:
+                                            width = int(width * 0.75)
+                                            logging.info(f"Video too large ({video_size_mb:.2f} MB), retrying with width={width}")
+
+                                            scaled_video_io = await scale_mp4(video_bytes, f'{width}:-1')
+                                            video_bytes = scaled_video_io.getvalue()
+                                            video_size_mb = len(video_bytes) / (1024 * 1024)
+
+                                        # Append video first then gif image later.
+                                        video_attachment = File(BytesIO(video_bytes), filename=filename)
+                                        attachments.append(video_attachment)
+                                        if kwdict.get('bitrate') == 0: attachments.append(gif_attachment)
 
                             if attachments:
                                 # Use the first kwdict for tweet metadata (assuming all media share the same tweet).
@@ -147,4 +163,4 @@ async def on_error(event, *args, **kwargs):
     logging.error("Error in event %s", event)
     print_exc()
 
-bot.run(discord_token, log_level=logging.WARN)
+bot.run(discord_token)
