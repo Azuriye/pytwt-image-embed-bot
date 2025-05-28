@@ -15,7 +15,7 @@ async def scale_mp4(video_bytes: bytes, scale: str) -> BytesIO:
     Returns:
       BytesIO: A BytesIO object containing the resulting video.
     """
-    process = await asyncio.create_subprocess_exec(
+    video_process = await asyncio.create_subprocess_exec(
         'ffmpeg',
         '-hide_banner',
         '-i', 'pipe:',
@@ -29,9 +29,9 @@ async def scale_mp4(video_bytes: bytes, scale: str) -> BytesIO:
         stderr=asyncio.subprocess.PIPE,
     )
 
-    stdout, stderr = await process.communicate(input=video_bytes)
+    stdout, stderr = await video_process.communicate(input=video_bytes)
 
-    if process.returncode != 0:
+    if video_process.returncode != 0:
         raise RuntimeError(f"Video downscale failed: {stderr.decode()}")
     
     
@@ -54,43 +54,50 @@ async def convert_video_to_gif(video_bytes: bytes, scale: str, fps: int = 50, di
     Returns:
       BytesIO: A BytesIO object containing the resulting GIF.
     """
-    loop = asyncio.get_event_loop()
+    with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+        palette_path = tmp.name
 
-    def sync_convert():
-        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
-            palette_path = tmp.name
+    filters = f"fps={fps},scale={scale}:flags=lanczos"
 
-        filters = f"fps={fps},scale={scale}:flags=lanczos"
+    # 1. Generate palette
+    palette_process = await asyncio.create_subprocess_exec(
+        'ffmpeg',
+        '-hide_banner',
+        '-loglevel', 'error',
+        '-i', 'pipe:',
+        '-vf', f"{filters},palettegen=stats_mode=diff:max_colors=256",
+        '-y', palette_path,
+        stdin=asyncio.subprocess.PIPE,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
 
-        cmd_palette = [
-            'ffmpeg',
-            '-hide_banner',
-            '-i', 'pipe:',
-            '-vf', f"{filters},palettegen=stats_mode=diff:max_colors=256",
-            '-y', palette_path
-        ]
-        result_palette = sp.run(cmd_palette, input=video_bytes, stdout=sp.PIPE, stderr=sp.PIPE)
-        if result_palette.returncode != 0:
-            os.remove(palette_path)
-            raise RuntimeError("Palette generation failed: " + result_palette.stderr.decode())
+    _, stderr = await palette_process.communicate(input=video_bytes)
 
-        cmd_gif = [
-            'ffmpeg',
-            '-hide_banner',
-            '-i', 'pipe:',
-            '-i', palette_path,
-            '-lavfi', f"{filters} [s]; [s][1:v] paletteuse=dither={dither}",
-            '-loop', '0',
-            '-f', 'gif',
-            '-loglevel', 'error',
-            'pipe:'
-        ]
-        result_gif = sp.run(cmd_gif, input=video_bytes, stdout=sp.PIPE, stderr=sp.PIPE)
+    if palette_process.returncode != 0:
         os.remove(palette_path)
+        raise RuntimeError(f"Palette generation failed: {stderr.decode()}")
 
-        if result_gif.returncode != 0:
-            raise RuntimeError("GIF conversion failed: " + result_gif.stderr.decode())
+    # 2. Generate GIF using palette
+    gif_process = await asyncio.create_subprocess_exec(
+        'ffmpeg',
+        '-hide_banner',
+        '-i', 'pipe:',
+        '-i', palette_path,
+        '-lavfi', f"{filters} [s]; [s][1:v] paletteuse=dither={dither}",
+        '-loop', '0',
+        '-f', 'gif',
+        '-loglevel', 'error',
+        'pipe:',
+        stdin=asyncio.subprocess.PIPE,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
 
-        return BytesIO(result_gif.stdout)
+    gif_stdout, gif_stderr = await gif_process.communicate(input=video_bytes)
+    os.remove(palette_path)
 
-    return await loop.run_in_executor(None, sync_convert)
+    if gif_process.returncode != 0:
+        raise RuntimeError(f"GIF conversion failed: {gif_stderr.decode()}")
+
+    return BytesIO(gif_stdout)
