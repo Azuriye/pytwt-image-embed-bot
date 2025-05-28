@@ -15,7 +15,7 @@ async def scale_mp4(video_bytes: bytes, scale: str) -> BytesIO:
     Returns:
       BytesIO: A BytesIO object containing the resulting video.
     """
-    cmd_video = [
+    process = await asyncio.create_subprocess_exec(
         'ffmpeg',
         '-hide_banner',
         '-i', 'pipe:',
@@ -23,13 +23,19 @@ async def scale_mp4(video_bytes: bytes, scale: str) -> BytesIO:
         '-movflags', 'frag_keyframe+empty_moov+default_base_moof',
         '-f', 'mp4',
         '-loglevel', 'error',
-        'pipe:'
-    ]
-    result_video = sp.run(cmd_video, input=video_bytes, stdout=sp.PIPE, stderr=sp.PIPE)
-    if result_video.returncode != 0:
-        raise RuntimeError("Video downscale failed: " + result_video.stderr.decode())
+        'pipe:',
+        stdin=asyncio.subprocess.PIPE,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+
+    stdout, stderr = await process.communicate(input=video_bytes)
+
+    if process.returncode != 0:
+        raise RuntimeError(f"Video downscale failed: {stderr.decode()}")
     
-    return BytesIO(result_video.stdout)
+    
+    return BytesIO(stdout)
 
 # https://stackoverflow.com/a/67878795
 # https://superuser.com/a/556031
