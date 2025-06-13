@@ -1,11 +1,6 @@
 # pytwt-image-embed-bot
 Watches a channel for X (formerly Twitter) links and embeds images.
 
-## Issues
-https://github.com/mikf/gallery-dl/issues/7382
-
-Fix: https://github.com/mikf/gallery-dl/issues/7382#issuecomment-2832560527
-
 ## How To
 
 ### Install
