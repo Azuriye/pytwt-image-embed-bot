@@ -11,7 +11,6 @@ You need the following:
  2. gallery-dl
  3. aiohttp
  4. ffmpeg
- 5. XClientTransaction (https://github.com/iSarabjitDhiman/XClientTransaction)
 
 copy `config.template.json` and rename to `config.json`, edit to fill in your tokens & channels.
 
