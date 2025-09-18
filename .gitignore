@@ -1,4 +1,5 @@
 config.json
 start.sh
 stop.sh
+twitbot.service
 __pycache__/
