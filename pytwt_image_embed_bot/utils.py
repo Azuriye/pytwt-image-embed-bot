@@ -1,14 +1,18 @@
-from datetime import timezone
+"""Small formatting helpers."""
+from datetime import datetime, timezone
 
-# https://stackoverflow.com/a/45846841
-def human_format(num: int) -> str:
-    num = float('{:.3g}'.format(num))
-    magnitude = 0
-    while abs(num) >= 1000:
-        magnitude += 1
+
+def human_format(num: int | float) -> str:
+    """1000 -> '1K', 1500000 -> '1.5M'. For reply/retweet/like counts."""
+    num = float(f"{float(num):.3g}")
+    for suffix in ("", "K", "M", "B", "T"):
+        if abs(num) < 1000:
+            text = f"{num:f}".rstrip("0").rstrip(".")
+            return f"{text}{suffix}"
         num /= 1000.0
-    return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
+    return f"{num:f}P"
 
-# https://stackoverflow.com/a/13287083
-def utc_to_local(utc_dt):
+
+def utc_to_local(utc_dt: datetime) -> datetime:
+    """gallery-dl gives naive UTC. Discord embeds want aware local."""
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
