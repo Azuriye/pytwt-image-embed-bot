@@ -3,6 +3,5 @@ start.sh
 stop.sh
 twitbot.service
 __pycache__/
-pytwt_image_embed_bot/pyproject.toml
-pytwt_image_embed_bot/uv.lock
 .python-version
+uv.lock
